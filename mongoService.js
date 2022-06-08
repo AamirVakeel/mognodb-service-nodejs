@@ -9,7 +9,6 @@ https://www.w3schools.com/nodejs/nodejs_mongodb.asp
 */
 
 const { ObjectId } = require('mongodb');
-
 var MongoClient = require('mongodb').MongoClient;
 // const MongoClient = mongodb.MongoClient
 const url = 'mongodb://localhost:27017/'
@@ -49,6 +48,16 @@ class MongoDBService {
         return conditionObj
     }
 
+    async listDatabasesAndCollections() {
+
+        let client = await MongoClient.connect(url)
+        let allDbs = await client.db('TestExample').admin().listDatabases()
+        let allCol = await client.db('TestExample').listCollections().toArray()
+        // console.log(allDbs)
+        console.log(allCol)
+        return 'abc'
+    }
+
     async addDataToDb(collectionName, objectToBeAdded) {
 
         if (typeof collectionName != typeof '') {
@@ -58,15 +67,21 @@ class MongoDBService {
             throw console.log(statusToReturn.error, `Object cannot be ${typeof objectToBeAdded}`)
         }
 
-        return MongoClient.connect(url, function (err, client) {
-            if (err) throw console.log(statusToReturn.error, err);
-            var dbo = client.db(dbName);
-            dbo.collection(collectionName).insertOne(objectToBeAdded, function (err, res) {
-                if (err) throw console.log(statusToReturn.error, err);
-                client.close();
-                return console.log(statusToReturn.complete, 'Object successfully added', res)
-            });
-        });
+        let client = await MongoClient.connect(url)
+        let db = client.db(dbName)
+        let data = await db.collection(collectionName).insertOne(objectToBeAdded);
+        client.close()
+        return data;
+
+        // return MongoClient.connect(url, function (err, client) {
+        //     if (err) throw console.log(statusToReturn.error, err);
+        //     var dbo = client.db(dbName);
+        //     dbo.collection(collectionName).insertOne(objectToBeAdded, function (err, res) {
+        //         if (err) throw console.log(statusToReturn.error, err);
+        //         client.close();
+        //         return console.log(statusToReturn.complete, 'Object successfully added', res)
+        //     });
+        // });
     }
 
     async addMultipleDataToDb(collectionName, objectsToBeAdded) {
